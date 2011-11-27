@@ -14,7 +14,7 @@
 
 (def method-names '("GET" "PUT" "POST" "DELETE"))
 
-(def status-codes '("200" "201" "204" "400" "403" "404" "406" "500"))
+(def status-codes '("200" "201" "204" "207" "400" "403" "404" "406" "500" "503"))
 
 (defn init-method-count
   "Returns the map"
@@ -43,11 +43,11 @@
 (defn init-structure
   "This return the initial data structure"
   []
-  (let [s-codes (init-method-count)]
+  (let [m-counts (init-method-count)]
     (loop [rmap {} keys (init-keys)]
       (if (empty? keys)
         rmap
-        (recur (assoc rmap (first keys) s-codes)
+        (recur (assoc rmap (first keys) m-counts)
                (rest keys))))))
 
 
@@ -121,3 +121,13 @@
       rvec
       (recur (conj rvec (get m-map (first methods)))
              (rest methods)))))
+
+(defn get-module-data
+  ""
+  [^String module-name d-map]
+  (loop [r-vec [] s-codes status-codes]
+    (if (empty? s-codes)
+      r-vec
+      (recur (conj r-vec {"name" (first s-codes)
+                          "data" (get-method-count-data (get d-map (str module-name ":" (first s-codes))))})                       
+             (rest s-codes)))))

@@ -20,10 +20,10 @@
   (is (= "kunde:200" (get (parse-log-line line2) 0))))
 
 (deftest test-parse-log-file
-  (is (= 32 (count
+  (is (= 80 (count
                 (let
                     [vectors
-                     (parse-log-file "/home/jitendra/access_log")]
+                     (parse-log-file "/home/jitendra/Workspaces/git.ws/log2json/access_log")]
                   (do (println vectors)
                       vectors))))))
 
@@ -32,10 +32,10 @@
   (is (= 0 (get (init-method-count) "GET"))))
 
 (deftest test-init-keys
-  (is (= 64 (count (init-keys)))))
+  (is (= 80 (count (init-keys)))))
 
 (deftest test-init-structure
-  (is (= 64 (count (init-structure)))))
+  (is (= 80 (count (init-structure)))))
 
 (deftest test-get-method-count-data
   (is (= [1 2 3 4]
