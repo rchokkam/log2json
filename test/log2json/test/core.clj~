@@ -1,8 +1,0 @@
-(ns ^{:doc "Test for Access log to json converter"
-      :author "Jitendra Takalkar"}
-  log2json.test.core
-  (:use [log2json.core])
-  (:use [clojure.test]))
-
-(deftest replace-me ;; FIXME: write
-  (is false "No tests have been written."))
