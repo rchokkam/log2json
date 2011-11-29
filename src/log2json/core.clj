@@ -1,7 +1,9 @@
 (ns ^{:doc "Access log to json converter"
       :author "Jitendra Takalkar"}
   log2json.core
-  (:import [java.io BufferedReader FileReader]))
+  (:gen-class)
+  (:use [clojure.data.json :only (json-str write-json read-json)])
+  (:import [java.io BufferedReader FileReader BufferedWriter FileWriter PrintWriter]))
 
 (def module-names '("abonnement"
                    "adresse"
@@ -15,6 +17,19 @@
 (def method-names '("GET" "PUT" "POST" "DELETE"))
 
 (def status-codes '("200" "201" "204" "207" "400" "403" "404" "406" "500" "503"))
+
+(def json-map {:chart {:renderTo "container"
+                       :plotBackgroundColor "none"
+                       :backgroundColor "none"
+                       :defaultSeriesType "column"}
+               :credits {:enabled false}
+               :xAxis {:categories (vec method-names)}
+               :yAxis {:gridLineColor "rgba(255,255,255,0.05)"
+                       :title {:text "SERVER HITS"}}
+               :tooltip {:crosshairs true
+                         :shared true}
+               :plotOptions {:column {:pointPadding 0.2
+                                      :borderWidth 0}}})
 
 (defn init-method-count
   "Returns the map"
@@ -124,10 +139,49 @@
 
 (defn get-module-data
   ""
-  [^String module-name d-map]
+  [^String env-name ^String module-name d-map]
   (loop [r-vec [] s-codes status-codes]
     (if (empty? s-codes)
-      r-vec
-      (recur (conj r-vec {"name" (first s-codes)
-                          "data" (get-method-count-data (get d-map (str module-name ":" (first s-codes))))})                       
+      (merge json-map
+             {:title {:text (.toUpperCase module-name)}
+              :subtitle {:text (str "KASIA2-" (.toUpperCase env-name))}
+              :series r-vec})
+      (recur (conj r-vec {:name (first s-codes)
+                          :data (get-method-count-data (get d-map (str module-name ":" (first s-codes))))})                       
              (rest s-codes)))))
+
+(defn map-to-json
+  "Return json string representation"
+  [m-data]
+  (json-str m-data))
+
+(defn write-to-file
+  "Create new File and write the string content."
+  [^String file-path ^String data]
+  (with-open [file-writer (FileWriter. file-path)
+              bf-writer (BufferedWriter. file-writer)
+              out (PrintWriter. bf-writer)]
+    (.write out data)))
+
+(defn for-each-module
+  ""
+  [^String env-name ^String base-path ^String file-name]
+  (let [file-path (str base-path file-name)
+        d-map (parse-log-file file-path)        
+        out-file-name (str file-name ".json")]
+    (loop [rpath [] modules module-names]
+      (if (empty? modules)
+        rpath
+        (recur (conj rpath (str base-path (first modules) "_" out-file-name))
+               (do (write-to-file (str base-path (first modules) "_" out-file-name)
+                                  (json-str (get-module-data env-name
+                                                             (first modules)
+                                                             d-map)))
+                   (rest modules)))))))
+
+;; (for-each-module "/home/jitendra/" "access_log")
+
+(defn -main
+  "Main function"
+  [^String env-name ^String base-path ^String file-name]
+  (for-each-module env-name base-path file-name))
