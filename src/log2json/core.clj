@@ -11,7 +11,7 @@
                    "kunde"
                    "logistik"
                    "ordre"
-                   "produckt"
+                   "produkt"
                    "provisionering"))
 
 (def method-names '("GET" "PUT" "POST" "DELETE"))
@@ -80,7 +80,7 @@
                 (.contains line "kunde")
                 (.contains line "logistik")
                 (.contains line "ordre")
-                (.contains line "produckt")
+                (.contains line "produkt")
                 (.contains line "provisionering")))
        (nil? (re-matches re-expn line))))
 
@@ -115,8 +115,8 @@
 
 (defn parse-log-file
   "Returns an array of Lines of log file"
-  [^String file-path]
-  (loop [rmap (init-structure)
+  [r-map ^String file-path]
+  (loop [rmap r-map
          lines (line-seq (BufferedReader. (FileReader. file-path)))]
     (if (empty? lines)
       rmap
@@ -127,6 +127,15 @@
               acount (if (nil? tcount) 0 tcount)]
           (recur (assoc-in rmap line-vec (inc acount))
                  (rest lines)))))))
+
+(defn parse-log-files
+  "Returns the map datastructure"
+  [& file-paths]
+  (loop [r-map (init-structure) f-paths file-paths]
+    (if (empty? f-paths)
+      r-map
+      (recur (parse-log-file r-map (first f-paths))
+        (rest f-paths)))))                 
 
 (defn get-method-count-data
   "Return vector"
@@ -165,10 +174,11 @@
 
 (defn for-each-module
   ""
-  [^String env-name ^String base-path ^String file-name]
-  (let [file-path (str base-path file-name)
-        d-map (parse-log-file file-path)        
-        out-file-name (str file-name ".json")]
+  [^String env-name ^String base-path ^String file-name-1 ^String file-name-2]
+  (let [file-path-1 (str base-path file-name-1)
+        file-path-2 (str base-path file-name-2)
+        d-map (parse-log-files file-path-1 file-path-2)        
+        out-file-name (str file-name-1 ".json")]
     (loop [rpath [] modules module-names]
       (if (empty? modules)
         rpath
@@ -183,5 +193,5 @@
 
 (defn -main
   "Main function"
-  [^String env-name ^String base-path ^String file-name]
-  (for-each-module env-name base-path file-name))
+  [^String env-name ^String base-path ^String file-name-1 ^String file-name-2]
+  (for-each-module env-name base-path file-name-1 file-name-2))
