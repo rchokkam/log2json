@@ -5,6 +5,10 @@
   (:use [clojure.data.json :only (json-str write-json read-json)])
   (:import [java.io BufferedReader FileReader BufferedWriter FileWriter PrintWriter]))
 
+(def re-expn #"^([\d.]+) (\S+) (\S+) \[([\w:/]+\s[+\-]\d{4})\] \"(.+?)\" (\d{3}) (\d+) \"(.+?)\" \"(.+?)\" (\d+) (\d+) (\d+)")
+
+(def servers (atom '()))
+
 (def module-names '("abonnement"
                    "adresse"
                    "afsaetning"
@@ -14,7 +18,13 @@
                    "produkt"
                    "provisionering"))
 
-(def method-names '("GET" "PUT" "POST" "DELETE"))
+(defn init-servers
+  "Initialize the servers list"
+  [^Integer count]
+  (loop [i count]
+    (if (= i 0)
+      @servers
+      (recur (do (swap! servers conj i) (dec i))))))
 
 (def status-codes '("200" "201" "204" "207" "400" "403" "404" "406" "500" "503"))
 
@@ -22,51 +32,51 @@
                        :plotBackgroundColor "none"
                        :backgroundColor "none"
                        :defaultSeriesType "column"}
-               :credits {:enabled false}
-               :xAxis {:categories (vec method-names)}
+               :credits {:enabled false}  
+               :xAxis {:categories (vec status-codes)}            
                :yAxis {:gridLineColor "rgba(255,255,255,0.05)"
                        :title {:text "SERVER HITS"}}
                :tooltip {:crosshairs true
                          :shared true}
+               :subtitle {:text "KASIA2"}
                :plotOptions {:column {:pointPadding 0.2
                                       :borderWidth 0}}})
 
-(defn init-method-count
-  "Returns the map"
+(defn init-status-code-map
+  "Returns the initial map for status codes"
   []
-  (loop [m-map {} m-names method-names]
-    (if (empty? m-names)
-      m-map
-      (recur (assoc m-map (first m-names) 0) (rest m-names)))))
+  (loop [s-map {} s-codes status-codes]
+    (if (empty? s-codes)
+      s-map
+      (recur (assoc s-map (first s-codes) 0) (rest s-codes)))))  
 
-(defn init-s-keys
+(defn init-server-keys
   [^String module-name]
-  (loop [rvec [] scodes  status-codes]
-    (if (empty? scodes)
+  (loop [rvec [] s @servers]
+    (if (empty? s)
       rvec
-      (recur (conj rvec (str module-name ":" (first scodes)))             
-             (rest scodes)))))
+      (recur (conj rvec (str module-name ":" (first s)))             
+             (rest s)))))
 
-(defn init-keys
+(defn init-map-keys
+  "Initialize the map keys"
   []
   (loop [rvec [] modules module-names]
     (if (empty? modules)
       rvec
-      (recur (into rvec (init-s-keys (first modules)))
+      (recur (into rvec (init-server-keys (first modules)))
              (rest modules)))))
 
-(defn init-structure
-  "This return the initial data structure"
+(defn init-column-map
+  "This return the initial data structure for column graph"
   []
-  (let [m-counts (init-method-count)]
-    (loop [rmap {} keys (init-keys)]
+  (let [s-counts (init-status-code-map)]
+    (loop [rmap {} keys (init-map-keys)]
       (if (empty? keys)
         rmap
-        (recur (assoc rmap (first keys) m-counts)
+        (recur (assoc rmap (first keys) s-counts)
                (rest keys))))))
 
-
-(def re-expn #"^([\d.]+) (\S+) (\S+) \[([\w:/]+\s[+\-]\d{4})\] \"(.+?)\" (\d{3}) (\d+) \"(.+?)\" \"(.+?)\" (\d+) (\d+) (\d+)")
 
 (defn skip-line?
   [^String line]
@@ -95,74 +105,63 @@
       token
       (.replace (get tokens2 1) "-v1" ""))))
 
-(defn get-method-name
-  "Returns map containing module and method name"
-  [^String req-str]
-  (let [tokens (.split req-str " ")]
-    (get tokens 0)))
-
 (defn parse-log-line
   "Returns map object after parsing the line"
-  [^String line]
+  [^Integer i ^String line]
   (let [tokens (re-find re-expn line)
         request-uri (get tokens 5)
-        status-code (get tokens 6)
-        response-time (get tokens 7)
+        status-code (get tokens 6)        
         module-name (get-module-name request-uri)
-        method-name (get-method-name request-uri)
-        key (str (.toLowerCase module-name) ":" status-code)]
-    [key method-name]))
+        key (str (.toLowerCase module-name) ":" i)]
+    [key status-code]))
 
 (defn parse-log-file
   "Returns an array of Lines of log file"
-  [r-map ^String file-path]
-  (loop [rmap r-map
-         lines (line-seq (BufferedReader. (FileReader. file-path)))]
-    (if (empty? lines)
-      rmap
-      (if (skip-line? (first lines))
-        (recur rmap (rest lines))
-        (let [line-vec (parse-log-line (first lines))
-              tcount (get-in rmap line-vec)
-              acount (if (nil? tcount) 0 tcount)]
-          (recur (assoc-in rmap line-vec (inc acount))
-                 (rest lines)))))))
+  [^Integer i r-map ^String file-path]
+  (with-open [fr (FileReader. file-path)
+              br (BufferedReader. fr)]
+    (loop [rmap r-map
+           lines (line-seq br)]
+      (if (empty? lines)
+        rmap
+        (if (skip-line? (first lines))
+          (recur rmap (rest lines))
+          (let [line-vec (parse-log-line i (first lines))
+                tcount (get-in rmap line-vec)
+                acount (if (nil? tcount) 0 tcount)]
+            (recur (assoc-in rmap line-vec (inc acount))
+                   (rest lines))))))))
 
 (defn parse-log-files
   "Returns the map datastructure"
-  [& file-paths]
-  (loop [r-map (init-structure) f-paths file-paths]
-    (if (empty? f-paths)
+  [^String base-path file-names]
+  (loop [r-map (init-column-map) f-names file-names i 1]
+    (if (empty? f-names)
       r-map
-      (recur (parse-log-file r-map (first f-paths))
-        (rest f-paths)))))                 
+      (recur (parse-log-file i r-map (str base-path (first f-names)))
+        (rest f-names)
+        (inc i)))))
 
-(defn get-method-count-data
+(defn get-status-code-data
   "Return vector"
   [m-map]
-  (loop [rvec [] methods method-names]
-    (if (empty? methods)
+  (loop [rvec [] s-codes status-codes]
+    (if (empty? s-codes)
       rvec
-      (recur (conj rvec (get m-map (first methods)))
-             (rest methods)))))
+      (recur (conj rvec (get m-map (first s-codes)))
+             (rest s-codes)))))
 
 (defn get-module-data
   ""
-  [^String env-name ^String module-name d-map]
-  (loop [r-vec [] s-codes status-codes]
-    (if (empty? s-codes)
+  [^String module-name d-map]
+  (loop [r-vec [] s @servers]
+    (if (empty? s)
       (merge json-map
-             {:title {:text (.toUpperCase module-name)}
-              :subtitle {:text (str "KASIA2-" (.toUpperCase env-name))}
+             {:title {:text (.toUpperCase module-name)}              
               :series r-vec})
-      (recur (conj r-vec {:name (first s-codes)
-                          :data (get-method-count-data (get d-map (str module-name ":" (first s-codes))))})                       
-             (rest s-codes)))))
-
-(defn map-to-json
-  "Return json string representation"
-  [m-data]
-  (json-str m-data))
+      (recur (conj r-vec {:name (str "SERVER-" (first s))
+                          :data (get-status-code-data (get d-map (str module-name ":" (first s))))})                       
+             (rest s)))))
 
 (defn write-to-file
   "Create new File and write the string content."
@@ -173,25 +172,20 @@
     (.write out data)))
 
 (defn for-each-module
-  ""
-  [^String env-name ^String base-path ^String file-name-1 ^String file-name-2]
-  (let [file-path-1 (str base-path file-name-1)
-        file-path-2 (str base-path file-name-2)
-        d-map (parse-log-files file-path-1 file-path-2)        
-        out-file-name (str file-name-1 ".json")]
+  "Process for each module"
+  [^String base-path file-names]
+  (let [d-map (parse-log-files base-path file-names)        
+        out-file-name (str "access_log.json")]
     (loop [rpath [] modules module-names]
       (if (empty? modules)
         rpath
         (recur (conj rpath (str base-path (first modules) "_" out-file-name))
-               (do (write-to-file (str base-path (first modules) "_" out-file-name)
-                                  (json-str (get-module-data env-name
-                                                             (first modules)
-                                                             d-map)))
+               (do (write-to-file (str base-path (first modules) "_" out-file-name) 
+                                  (json-str (get-module-data (first modules) d-map)))
                    (rest modules)))))))
-
-;; (for-each-module "/home/jitendra/" "access_log")
 
 (defn -main
   "Main function"
-  [^String env-name ^String base-path ^String file-name-1 ^String file-name-2]
-  (for-each-module env-name base-path file-name-1 file-name-2))
+  [^String base-path & file-names]
+  (init-servers (count file-names))
+  (for-each-module base-path file-names))
