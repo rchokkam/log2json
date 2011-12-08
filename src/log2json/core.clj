@@ -26,7 +26,7 @@
       @servers
       (recur (do (swap! servers conj i) (dec i))))))
 
-(def status-codes '("200" "201" "204" "207" "400" "403" "404" "406" "500" "503"))
+(def status-codes '("400" "403" "404" "406" "500" "503"))
 
 (def json-map {:chart {:renderTo "container"
                        :plotBackgroundColor "none"
