@@ -133,4 +133,4 @@
           (recur (process-access-file a-map (first files))
                  (rest files)))))))
 
-(-main "/home/jitendra/rsync")
+;;(-main "/home/jitendra/rsync")
