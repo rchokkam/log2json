@@ -7,10 +7,11 @@
   (:gen-class)
   (:use [log2json.config])
   (:use [log2json.common])
+  (:use [log2json.util])
   (:use [clojure.data.json :only (json-str write-json read-json)])
   (:import [java.io File FileFilter FileReader BufferedReader BufferedWriter FileWriter]))
 
-(def dates (atom #{}))
+(def dates (atom (sorted-set-by d-comparator)))
 
 (def dir-file-filter
   (reify java.io.FileFilter
@@ -132,4 +133,4 @@
           (recur (process-access-file a-map (first files))
                  (rest files)))))))
 
-;; (-main "/home/jitendra/rsync")
+(-main "/home/jitendra/rsync")
