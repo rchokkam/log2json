@@ -1,5 +1,5 @@
-(ns ^{:doc "Access log to json converter"
-      :author "Jitendra Takalkar"}
+(ns ^{:author "Jitendra Takalkar jitendra.takalkar@gmail.com"
+      :doc "Access log to json converter"}
   log2json.lines
   (:gen-class)
   (:use [clojure.data.json :only (json-str write-json read-json)])
@@ -7,13 +7,13 @@
            [java.util Calendar]))
 
 (def module-names '("abonnement"
-                   "adresse"
-                   "afsaetning"
-                   "kunde"
-                   "logistik"
-                   "ordre"
-                   "produkt"
-                   "provisionering"))
+                    "adresse"
+                    "afsaetning"
+                    "kunde"
+                    "logistik"
+                    "ordre"
+                    "produkt"
+                    "provisionering"))
 
 
 (def hour-names (atom '()))
@@ -30,8 +30,8 @@
                :tooltip {:crosshairs true
                          :shared true}
                :plotOptions {:spline {:marker {:radius 4
-                                      :lineColor "#666666"
-                                      :lineWidth 1}}}})
+                                               :lineColor "#666666"
+                                               :lineWidth 1}}}})
 
 (defn get-hr
   ""
@@ -91,7 +91,7 @@
 (defn skip-line?
   [^String line]
   (or (= "" (.trim line))
-       (.contains line "alive.html")
+      (.contains line "alive.html")
        (.contains line "alive?")
        (.contains line "/docs")
        (not (or (.contains line "abonnement")
@@ -154,7 +154,7 @@
     (if (empty? f-paths)
       r-map
       (recur (parse-log-file r-map (first f-paths))
-        (rest f-paths)))))                 
+             (rest f-paths)))))                 
 
 (defn get-hour-count-data
   "Return vector"
