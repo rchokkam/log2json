@@ -64,6 +64,10 @@
       (replace {nil 0} rvec)
       (recur (conj rvec (get m-map (first str-dates)))
              (rest str-dates)))))
+(defn trim-year
+  "Remove the years"
+  [dvec]
+  (map #(.substring % 0 (.lastIndexOf % "/")) dvec))
 
 (defn get-module-success-data
   "Return the JSON"
@@ -73,9 +77,9 @@
       (merge json-map
              {:title {:text (.toUpperCase module-name)}
               :subtitle {:text (str "KASIA2-SUCCESS")}
-              :xAxis {:categories (vec @dates)
+              :xAxis {:categories (vec (trim-year @dates))
                       :labels {:rotation 90
-                               :y 40
+                               :y 30
                                :step 2}}
               :series r-vec})
       (recur (conj r-vec {:name (first s-codes)
@@ -90,9 +94,9 @@
       (merge json-map
              {:title {:text (.toUpperCase module-name)}
               :subtitle {:text (str "KASIA2-ERROR")}
-              :xAxis {:categories (vec @dates)
+              :xAxis {:categories (vec (trim-year @dates))
                       :labels {:rotation 90
-                               :y 40
+                               :y 30
                                :step 2}}
               :series r-vec})
       (recur (conj r-vec {:name (first s-codes)
@@ -133,4 +137,4 @@
           (recur (process-access-file a-map (first files))
                  (rest files)))))))
 
-;;(-main "/home/jitendra/rsync")
+;; (-main "/home/jitendra/rsync")
