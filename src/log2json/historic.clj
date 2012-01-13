@@ -75,8 +75,13 @@
   (loop [r-vec [] s-codes success-status-codes]
     (if (empty? s-codes)
       (merge json-map
-             {:title {:text (.toUpperCase module-name)}
-              :subtitle {:text (str "KASIA2-SUCCESS")}
+             {:title {:text (.toUpperCase module-name)
+                      :style {:color "#ffffff"
+                              :fontWeight "bold"
+                              :fontSize "27px"}}
+              :subtitle {:text (str "KASIA2-SUCCESS")
+                         :style {:color "#ffffff"
+                                  :fontSize "15px"}}
               :xAxis {:categories (vec (trim-year @dates))
                       :labels {:rotation 90
                                :y 30
@@ -92,8 +97,13 @@
   (loop [r-vec [] s-codes error-status-codes]
     (if (empty? s-codes)
       (merge json-map
-             {:title {:text (.toUpperCase module-name)}
-              :subtitle {:text (str "KASIA2-ERROR")}
+             {:title {:text (.toUpperCase module-name)
+                      :style {:color "#ffffff"
+                              :fontWeight "bold"
+                              :fontSize "27px"}}
+              :subtitle {:text (str "KASIA2-ERROR")
+                         :style {:color "#ffffff"
+                                  :fontSize "15px"}}
               :xAxis {:categories (vec (trim-year @dates))
                       :labels {:rotation 90
                                :y 30

@@ -38,7 +38,10 @@
                        :title {:text "SERVER HITS"}}
                :tooltip {:crosshairs true
                          :shared true}
-               :subtitle {:text "KASIA2"}
+               :subtitle {:text "KASIA2"
+                          :style {:color "#ffffff"
+                                  :fontSize "15px"}
+                          }
                :plotOptions {:column {:pointPadding 0.2
                                       :borderWidth 0}}})
 
@@ -157,7 +160,10 @@
   (loop [r-vec [] s @servers]
     (if (empty? s)
       (merge json-map
-             {:title {:text (.toUpperCase module-name)}              
+             {:title {:text (.toUpperCase module-name)
+                      :style {:color "#ffffff"
+                              :fontWeight "bold"
+                              :fontSize "27px"}}              
               :series r-vec})
       (recur (conj r-vec {:name (str "SERVER-" (first s))
                           :data (get-status-code-data (get d-map (str module-name ":" (first s))))})                       

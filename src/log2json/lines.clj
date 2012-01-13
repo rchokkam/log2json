@@ -171,8 +171,13 @@
   (loop [r-vec [] s-codes status-codes]
     (if (empty? s-codes)
       (merge json-map
-             {:title {:text (.toUpperCase module-name)}
-              :subtitle {:text (str "KASIA2-SUCCESS")}
+             {:title {:text (.toUpperCase module-name)
+                      :style {:color "#ffffff"
+                              :fontWeight "bold"
+                              :fontSize "27px"}}
+              :subtitle {:text (str "KASIA2-SUCCESS")
+                         :style {:color "#ffffff"
+                                  :fontSize "15px"}}
               :xAxis {:categories (vec @hour-names)}
               :series r-vec})
       (recur (conj r-vec {:name (first s-codes)

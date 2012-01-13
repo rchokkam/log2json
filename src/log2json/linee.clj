@@ -26,7 +26,9 @@
                        :backgroundColor "none"
                        :defaultSeriesType "spline"}
                :credits {:enabled false}  
-               :subtitle {:text (str "KASIA2-ERRORS")}             
+               :subtitle {:text (str "KASIA2-ERRORS")
+                          :style {:color "#ffffff"
+                                  :fontSize "15px"}}             
                :yAxis {:gridLineColor "rgba(255,255,255,0.05)"
                        :title {:text "SERVER HITS"}}
                :tooltip {:crosshairs true
@@ -174,7 +176,10 @@
   (loop [r-vec [] s-codes status-codes]
     (if (empty? s-codes)
       (merge json-map
-             {:title {:text (.toUpperCase module-name)}              
+             {:title {:text (.toUpperCase module-name)
+                      :style {:color "#ffffff"
+                              :fontWeight "bold"
+                              :fontSize "27px"}}              
               :xAxis {:categories (vec @hour-names)}
               :series r-vec})
       (recur (conj r-vec {:name (first s-codes)
