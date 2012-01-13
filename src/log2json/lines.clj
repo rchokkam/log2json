@@ -37,9 +37,9 @@
   ""
   []
   (let [hour (.get (Calendar/getInstance) (Calendar/HOUR_OF_DAY))]
-    (if (= hour 24) 
-      hour
-      (inc hour))))
+    (if (= hour 00) 
+      (inc hour)
+      hour)))
 
 
 (defn init-hours
