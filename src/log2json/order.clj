@@ -6,16 +6,16 @@
   (:use [clojure.data.json :only (json-str write-json read-json)])
   (:import [java.io File FileReader BufferedReader BufferedWriter FileWriter]))
 (def color-map {:Modtaget "FFFF10AA"
-                :Parse_Ok "FFFF10AA"
+                :Parse_OK "FFAA0AAA"
                 :Parse_Fejl "FF0000AA"
                 :Running "FF5505AA"
-                :Afsluttet "FFCC10AA"})
+                :Afsluttet "15159D74"})
 (defn process-order-stage
   "Process map"
   [smap]
   {:label (first (keys smap))
    :value (first (vals smap))
-   :color ((first (keys smap)) color-map)})
+   :colour ((first (keys smap)) color-map)})
 
 (defn process-order-data
   "Process Order Status data"
@@ -39,4 +39,4 @@
       (recur (str tstr " " (first lines))
              (rest lines)))))
 
-(-main "/home/jitendra/ordre.json")
+;; (-main "/home/jitendra/ordre.json")
