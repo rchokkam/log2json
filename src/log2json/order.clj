@@ -5,12 +5,17 @@
   (:use [log2json.common])
   (:use [clojure.data.json :only (json-str write-json read-json)])
   (:import [java.io File FileReader BufferedReader BufferedWriter FileWriter]))
-
+(def color-map {:Modtaget "FFFF10AA"
+                :Parse_Ok "FFFF10AA"
+                :Parse_Fejl "FF0000AA"
+                :Running "FF5505AA"
+                :Afsluttet "FFCC10AA"})
 (defn process-order-stage
   "Process map"
   [smap]
   {:label (first (keys smap))
-   :value (first (vals smap))})
+   :value (first (vals smap))
+   :color ((first (keys smap)) color-map)})
 
 (defn process-order-data
   "Process Order Status data"
@@ -29,9 +34,9 @@
   (loop [tstr ""
          lines (line-seq (BufferedReader. (FileReader. (File. file-path))))]
     (if (empty? lines)
-      (do (write-to-file (str file-path ".json") (json-str {:items (process-order-data tstr)}))
+      (do (write-to-file (str file-path ".json") (json-str {:item (process-order-data tstr)}))
           "Done")
       (recur (str tstr " " (first lines))
              (rest lines)))))
 
-;; (-main "/home/jitendra/ordre.json")
+(-main "/home/jitendra/ordre.json")
