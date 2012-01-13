@@ -29,7 +29,7 @@
   (loop [tstr ""
          lines (line-seq (BufferedReader. (FileReader. (File. file-path))))]
     (if (empty? lines)
-      (do (write-to-file (str file-path ".out") (json-str {:items (process-order-data tstr)}))
+      (do (write-to-file (str file-path ".json") (json-str {:items (process-order-data tstr)}))
           "Done")
       (recur (str tstr " " (first lines))
              (rest lines)))))
