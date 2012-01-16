@@ -9,7 +9,7 @@
                 :Parse_OK "FFAA0AAA"
                 :Parse_Fejl "FF0000AA"
                 :Running "FF5505AA"
-                :Afsluttet "FF777F7F"})
+                :Afsluttet "AAFF5555"})
 (defn process-order-stage
   "Process map"
   [smap]
