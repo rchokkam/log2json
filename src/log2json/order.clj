@@ -5,11 +5,12 @@
   (:use [log2json.common])
   (:use [clojure.data.json :only (json-str write-json read-json)])
   (:import [java.io File FileReader BufferedReader BufferedWriter FileWriter]))
+
 (def color-map {:Modtaget "FFFF10AA"
-                :Parse_OK "FFAA0AAA"
+                :Parse_OK "AAFF5555"
                 :Parse_Fejl "FF0000AA"
-                :Running "FF5505AA"
-                :Afsluttet "AAFF5555"})
+                :Running "FF5505AA"})
+
 (defn process-order-stage
   "Process map"
   [smap]
@@ -24,7 +25,8 @@
          ovec (read-json str-vec)]
     (if (empty? ovec)
       rvec
-      (if (= :Total (first (keys (first ovec))))
+      (if (or (= :Total (first (keys (first ovec))))
+              (= :Afsluttet (first (keys (first ovec)))))
         (recur rvec (rest ovec))
         (recur (conj rvec (process-order-stage (first ovec))) (rest ovec))))))
 
